@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\InternshipOffer;
 use App\Models\Company;
+use App\Models\Application;
 use Illuminate\Http\Request;
 
 use App\Http\Requests\StoreInternshipOfferRequest;
@@ -88,8 +89,9 @@ class InternshipOfferController extends Controller
     public function show(Company $company, InternshipOffer $internshipOffer)
     {
         //
-        
-        return view('company.internship_offer.show',['company'=>$company, 'offer'=>$internshipOffer]);
+        $application = Application::where('user_id',auth()->user()->id)->where('internship_offer_id',$internshipOffer->id)->first();
+    
+        return view('company.internship_offer.show',['company'=>$company, 'offer'=>$internshipOffer, 'application'=>($application)]);
     }
 
     /**

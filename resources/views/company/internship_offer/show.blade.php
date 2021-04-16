@@ -14,6 +14,14 @@
                     </ul>
                 </div>
             @endif
+            @if(isset($application))
+                <div class="alert alert-success">
+                    <ul>
+                        <li>Application Already Sent!</li>
+                        <li>State of Application: {{ $application->state }}</li>
+                    </ul>
+                </div>
+            @endif
             <div class="card">
                 <div class="card-header font-weight-bold">{{ __('Internship Offer') }}</div>
 
@@ -93,6 +101,23 @@
                             </div>
                         </div>
                     </form>
+
+                    @if(auth()->user()->can('send application') && $company->situation == App\Models\Company::SITUATIONS[1])
+                        @if(!isset($application))
+                            <form method="POST" action="{{ route('company.internship_offer.application.store',[$company,$offer]) }}">
+                            @csrf
+
+                                <div class="form-group row mt-2">
+                                    <div class="col-md-6 offset-md-4">
+                                        <button type="submit" class="btn btn-primary" {!! $offer->vacancies > 0     ? '' : 'disabled  title="No vacancies for this offer"' !!}>
+                                            {{ __('Send Application') }}
+                                        </button>
+                                    </div>
+                                </div>
+
+                            </form>
+                        @endif
+                    @endif
                 </div>
             </div>
         </div>

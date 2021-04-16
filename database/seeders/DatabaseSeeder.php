@@ -36,15 +36,28 @@ class DatabaseSeeder extends Seeder
         Permission::create(['name' => 'delete offer']);
         Permission::create(['name' => 'edit offer']);
 
+        //applications related
+        Permission::create(['name' => 'send application']);
+        Permission::create(['name' => 'accept application']);
+
+
         // Roles
-        //student role creation
+        //student role creation and permissions
         $student = Role::create(['name' => 'student']);
+        $student->givePermissionTo(['send application']);
+        $user_student = \App\Models\User::factory()->create([
+            'name' => 'Student 1',
+            'email' => 'student@gmail.com',
+            'password' => Hash::make('student123')
+        ]);
+        $user_student->assignRole($student);
 
         //coordinator role creation and permissions
         $coordinator = Role::create(['name' => 'coordinator']);
         $coordinator->givePermissionTo(['create company','delete company','edit company','edit company situation',
                                         'see user','create user','delete user','edit user',
-                                        'create offer','delete offer','edit offer']);
+                                        'create offer','delete offer','edit offer',
+                                        'accept application']);
         $user_coordinator = \App\Models\User::factory()->create([
             'name' => 'Coordinator 1',
             'email' => 'coordinator@gmail.com',

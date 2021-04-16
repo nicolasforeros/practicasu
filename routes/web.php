@@ -28,3 +28,5 @@ Route::resource('/company', App\Http\Controllers\CompanyController::class);
 Route::resource('/user', App\Http\Controllers\UserController::class);
 
 Route::resource('/company.internship_offer', App\Http\Controllers\InternshipOfferController::class);
+
+Route::resource('/company.internship_offer.application', App\Http\Controllers\ApplicationController::class)->only(['index','store', 'update']);

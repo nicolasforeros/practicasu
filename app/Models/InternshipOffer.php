@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 use App\Models\Company;
+use App\Models\Application;
 
 class InternshipOffer extends Model
 {
@@ -40,5 +41,9 @@ class InternshipOffer extends Model
 
     public function company(){
         return $this->belongsTo(Company::class);
+    }
+
+    public function applications(){
+        return $this->hasMany(Application::class);
     }
 }
