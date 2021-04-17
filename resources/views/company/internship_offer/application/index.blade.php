@@ -5,114 +5,73 @@
     
 <div class="container card">
     <div class="row">
-        <a href="{{ route('company.index',) }}" class="btn btn-primary ml-2 mt-2">Companies</a>
+        <a href="{{ route('company.internship_offer.index',$company) }}" class="btn btn-primary ml-2 mt-2">{{ $company->name }}'s Internship Offers</a>
     </div>
     <div class="row justify-content-center">    
-        <h1 class="mt-2">{{ $company->name }}'s Internship Offers</h1>
+        <h1 class="mt-2">Applications for {{ $offer->position }}</h1>
     </div>
-    
-    @if ( $company->situation != App\Models\Company::SITUATIONS[1])
-        <div class="alert alert-danger">
+
+    @if ( $offer->vacancies == 0)
+        <div class="alert alert-success">
             <ul>
-                <li>Company has not been accepted, applications are disabled</li>
+                <li>All vacancies for this offer already accepted</li>
             </ul>
         </div>
     @endif
     
-    @can('create offer')
-        <div class="row justify-content-center">
-            <a href="{{ route('company.internship_offer.create',$company) }}" class="btn btn-primary mb-3">New Internship Offer</a>
-        </div>
-    @endcan
     <div class="row justify-content-center">
         <table class="table col-11">
         
             <thead>
                 <tr class="font-weight-bold">
                     <td>Id</td>
-                    <td>Position</td>
-                    <td>Duration (months)</td>
-                    <td>Type</td>
-                    <td>Vacancies</td>
+                    <td>Student name</td>
+                    <td>Student email</td>
+                    <td>State</td>
                     <td>Actions</td>
                 </tr>
             </thead>
             <tbody>
-                @foreach($offers as $offer)
+                @foreach($applications as $application)
                     <tr>
-                        <td>{{$offer->id}}</td>
-                        <td>{{$offer->position}}</td>
-                        <td>{{$offer->duration_months}}</td>
-                        <td>{{$offer->type}}</td>
-                        <td>{{$offer->vacancies}}</td>
+                        <td>{{$application->id}}</td>
+                        <td>{{$application->user->name}}</td>
+                        <td>{{$application->user->email}}</td>
+                        <td>{{$application->state}}</td>
                         <td>
-                            <a href="{{ route('company.internship_offer.show',[$company,$offer]) }}" class="btn btn-primary">
+                        @if($offer->vacancies>0)
+                            <form method="POST" action="{{ route('company.internship_offer.application.update',[$company,$offer,$application]) }}">
+                            @method('PUT')
+                            @csrf
+                                <input type="hidden" id="state" name="state" value="{{ $states[1] }}">
+                                <button type="submit" class="btn btn-primary" {{ $application->state == $states[1] ? 'disabled' : '' }}>
                                 <!-- <i class="bi bi-eye-fill"></i> -->
-                                Show Details
-                            </a>
-                            @can('accept application')
-                            <button onclick="location.href='{{ route('company.internship_offer.application.index',[$company,$offer]) }}'" type="button" class="btn btn-primary" {{$company->situation!=App\Models\Company::SITUATIONS[1] ? 'disabled' : ''}}>
+                                    Accept
+                                </button>
+                            </form>
+                        @endif
+                            <form method="POST" action="{{ route('company.internship_offer.application.update',[$company,$offer,$application]) }}">
+                            @method('PUT')
+                            @csrf
+                                <input type="hidden" id="state" name="state" value="{{ $states[2] }}">
+                                <button type="submit" class="btn btn-danger" {{ $application->state == $states[2] ? 'disabled' : '' }}>
                                 <!-- <i class="bi bi-eye-fill"></i> -->
-                                Show Applications
-                            </button>
-                            @endcan
-                            @can('edit offer')  
-                                <a href="{{ route('company.internship_offer.edit',[$company,$offer]) }}" class="btn btn-primary">Edit</a>
-                            @endcan
-                            @can('delete offer')
-                                <button class="btn btn-danger" type="button" data-toggle="modal" data-target="#deleteModal" data-company="{{ $company }}" data-offer="{{ $offer }}">Delete</button>
-                            @endcan
+                                    Reject
+                                </button>
+                            </form>
+
+                        
                         </td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
-        {{ $offers->links() }}
-
-        <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="deleteModalLabel">An internship offer is going to be deleted</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Are you sure?</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        
-                        <form id="formDelete" action="" data-action="{{ route('company.internship_offer.destroy', [$company, 0]) }}" method="POST">
-                            @method('DELETE')
-                            @csrf
-                            <button type="submit" class="btn btn-primary">Delete</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+        {{ $applications->links() }}
     </div>
 </div>
 
 </main>
 
 <script>
-    $('#deleteModal').on('show.bs.modal', function (event) {
-        console.log("hola");
-        var button = $(event.relatedTarget) // Button that triggered the modal
-
-        var recipient = button.data('offer'); // Extract info from data-* attributes
-        // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
-
-        action = $('#formDelete').attr('data-action').slice(0,-1);
-
-        // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-        var modal = $(this)
-
-        $('#formDelete').attr('action',action+ recipient.id);
-        modal.find('.modal-title').text('The offer ' + recipient.position + ' is going to be deleted')
-    })
 </script>
 @endsection

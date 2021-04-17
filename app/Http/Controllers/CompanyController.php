@@ -215,12 +215,16 @@ class CompanyController extends Controller
 
         // dd($request->documents);
 
-        foreach ($request->documents as $key=>$document) {
-            $filename = $company->id ."-" . $key ."-" . time() . "." . $document->extension();
+        if(isset($request->documents))
+        {
+            foreach ($request->documents as $key=>$document) {
+                $filename = $company->id ."-" . $key ."-" . time() . "." . $document->extension();
+    
+                $document->move(public_path('documents'),$filename);
+    
+                CompanyDocument::create(['company_id'=> $company->id, 'filename'=>$filename]);
+            }
 
-            $document->move(public_path('documents'),$filename);
-
-            CompanyDocument::create(['company_id'=> $company->id, 'filename'=>$filename]);
         }
 
     }

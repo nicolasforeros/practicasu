@@ -31,19 +31,25 @@ class ApplicationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Company $company, InternshipOffer $offer)
+    public function index(Company $company, InternshipOffer $internshipOffer)
     {
         //
-        $applications = $offer->applications()->paginate(10);
+        if ($company->situation == Company::SITUATIONS[1]){
+            $applications = $internshipOffer->applications()->paginate(10);
         
-        $states = Application::STATES;
+            $states = Application::STATES;
 
-        return view('company.internship_offer.application.index',[
-            'company'=>$company,
-            'offer'=>$offer,
-            'applications'=>$applications,
-            'states'=>$states
-        ]);
+            return view('company.internship_offer.application.index',[
+                'company'=>$company,
+                'offer'=>$internshipOffer,
+                'applications'=>$applications,
+                'states'=>$states
+            ]);
+        }else{
+            abort(403,'Unavailable Internship Offer');
+        }
+
+        
     }
 
     /**
@@ -65,7 +71,9 @@ class ApplicationController extends Controller
     public function store(Company $company, InternshipOffer $internshipOffer, StoreApplicationRequest $request)
     {
         //
-        $application = Application::where('user_id',auth()->user()->id)->where('internship_offer_id',$internshipOffer->id);
+        $application = Application::where('user_id',auth()->user()->id)->where('internship_offer_id',$internshipOffer->id)->first();
+
+        //dd($application);
 
         if ($company->situation == Company::SITUATIONS[1] && $internshipOffer->vacancies > 0 && !isset($application)) {
             $application = Application::create([
@@ -75,7 +83,7 @@ class ApplicationController extends Controller
 
             return redirect()->route('company.internship_offer.index', [$company]);
         } else {
-            return redirect()->back()->withErrors('Unavailable Internship Offer')->withInput();
+            abort(403, 'Unavailable Internship Offer');
         }
     }
 
@@ -108,24 +116,31 @@ class ApplicationController extends Controller
      * @param  \App\Models\Application  $application
      * @return \Illuminate\Http\Response
      */
-    public function update(StoreApplicationRequest $request, Company $company, InternshipOffer $offer, Application $application)
+    public function update(StoreApplicationRequest $request, Company $company, InternshipOffer $internshipOffer, Application $application)
     {
         //
-        if ($company->situation == Company::SITUATIONS[1] && $offer->vacancies > 0) {
+        if ($company->situation == Company::SITUATIONS[1]) {
             
-            $application->state = $request->state;
-
-            if ($request->state == Application::STATES[1]) {
-                $offer->vacancies -= 1;
-                $offer->save();
+            if($request->state!=$application->state){
+                if ($request->state == Application::STATES[1] && $internshipOffer->vacancies > 0) {
+                    $internshipOffer->vacancies -= 1;
+                    $internshipOffer->save();
+                }
+    
+                if ($request->state == Application::STATES[2]  && $application->state == Application::STATES[1]) {
+                    $internshipOffer->vacancies += 1;
+                    $internshipOffer->save();
+                }
             }
+
+            $application->state = $request->state;
 
             $application->save();
 
-            return redirect()->route('company.internship_offer.application.index', [$company, $offer]);
+            return redirect()->route('company.internship_offer.application.index', [$company, $internshipOffer]);
 
         } else {
-            abort(422, 'Unavailable Internship Offer');
+            abort(403, 'Unavailable Internship Offer');
         }
 
     }
